@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mystery Box</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin: 20px;
+    }
+    .tab-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .tab-buttons button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .tab-buttons button:hover {
+      background: #0056b3;
+    }
+    .tab {
+      display: none;
+    }
+    .tab.active {
+      display: block;
+    }
+    .coffres {
+      margin-top: 20px;
+    }
+    .coffres img {
+      width: 200px;
+      height: 200px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .coffres img:hover {
+      transform: scale(1.1);
+    }
+    #rewardContainer {
+      margin-top: 30px;
+      display: none;
+    }
+    #rewardDisplay {
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #4caf50, #81c784);
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+    }
+    .nav-buttons {
+      margin-top: 20px;
+    }
+    .nav-buttons button {
+      margin: 0 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .nav-buttons button:hover {
+      background: #0056b3;
+    }
+    .box-buttons {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .box-buttons button {
+      margin: 0 10px;
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #ff9800, #ffc107);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+    .box-buttons button:hover {
+      transform: scale(1.05);
+      background: linear-gradient(90deg, #e68900, #e6af07);
+    }
+    #rewardsList div {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f4f4f9;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <h1>Mystery Box</h1>
+  <div class="tab-buttons">
+    <button onclick="showTab('mysteryBoxTab')">Mystery Box</button>
+    <button onclick="showTab('myRewardsTab')">Mes Récompenses</button>
+  </div>
+
+  <div id="mysteryBoxTab" class="tab active">
+    <h2>Choisissez votre Mystery Box :</h2>
+    <div class="box-buttons">
+      <button onclick="selectBox(5)">5 Robux</button>
+      <button onclick="selectBox(10)">10 Robux</button>
+      <button onclick="selectBox(20)">20 Robux</button>
+    </div>
+
+    <div id="coffres" class="coffres" style="display: none;">
+      <img id="coffreImg" src="" alt="Coffre" onclick="openCoffre()">
+    </div>
+
+    <div id="rewardContainer">
+      <p>🎉 <span id="rewardDisplay"></span></p>
+      <div class="nav-buttons">
+        <button onclick="showPreviousReward()" id="prevButton" disabled>⬅️ Précédent</button>
+        <button onclick="showNextReward()" id="nextButton" disabled>Suivant ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="myRewardsTab" class="tab">
+    <h2>Mes Récompenses</h2>
+    <div id="rewardsList"></div>
+  </div>
+
+  <script>
+    const boxRewards = {
+      5: {
+        img: "https://cdn.vegaooparty.com/images/rep_art/moy_v5/334/1/334139/8-contenants-coffre-au-tresor-pirate-8-x-5-5-x-6-cm_334139.jpg",
+        rewards: [
+          { name: "100 Levels", probability: 50 },
+          { name: "Fruit Rare", probability: 30 },
+          { name: "200 Levels", probability: 20 }
+        ]
+      },
+      10: {
+        img: "https://img.freepik.com/vecteurs-libre/coffre-au-tresor-verrouille-isole_1308-69065.jpg",
+        rewards: [
+          { name: "400 Levels", probability: 50 },
+          { name: "Fruit Légendaire", probability: 30 },
+          { name: "VIP Discord 1 jour", probability: 1 }
+        ]
+      },
+      20: {
+        img: "https://thumbs.dreamstime.com/b/coffre-de-trésor-25489445.jpg",
+        rewards: [
+          { name: "1000 Levels", probability: 25 },
+          { name: "Saber Sword", probability: 23 },
+          { name: "Fruit Mythique", probability: 5 }
+        ]
+      }
+    };
+
+    let selectedBox = null;
+    let currentRewards = [];
+    let currentRewardIndex = 0;
+
+    function showTab(tabId) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+    }
+
+    function selectBox(boxId) {
+      selectedBox = boxId;
+      const coffreImg = document.getElementById("coffreImg");
+      coffreImg.src = boxRewards[boxId].img;
+      document.getElementById("coffres").style.display = "block";
+      document.getElementById("rewardContainer").style.display = "none";
+    }
+
+    function getRandomReward(rewards) {
+      const total = rewards.reduce((sum, reward) => sum + reward.probability, 0);
+      const random = Math.random() * total;
+      let cumulative = 0;
+
+      for (const reward of rewards) {
+        cumulative += reward.probability;
+        if (random <= cumulative) {
+          return reward.name;
+        }
+      }
+    }
+
+    function openCoffre() {
+      if (selectedBox) {
+        const rewards = boxRewards[selectedBox].rewards;
+
+        // Générer entre 1 et 4 récompenses
+        const numRewards = Math.floor(Math.random() * 4) + 1;
+        currentRewards = Array.from({ length: numRewards }, () => getRandomReward(rewards));
+
+        // Afficher la première récompense
+        currentRewardIndex = 0;
+        displayCurrentReward();
+
+        // Sauvegarder les récompenses
+        saveReward(selectedBox, currentRewards);
+      }
+    }
+
+    function displayCurrentReward() {
+      document.getElementById("rewardDisplay").textContent = currentRewards[currentRewardIndex];
+      document.getElementById("rewardContainer").style.display = "block";
+
+      // Mettre à jour les boutons
+      updateNavigationButtons();
+    }
+
+    function updateNavigationButtons() {
+      document.getElementById("prevButton").disabled = currentRewardIndex === 0;
+      document.getElementById("nextButton").disabled = currentRewardIndex === currentRewards.length - 1;
+    }
+
+    function showPreviousReward() {
+      if (currentRewardIndex > 0) {
+        currentRewardIndex--;
+        displayCurrentReward();
+      }
+    }
+
+    function showNextReward() {
+      if (currentRewardIndex < currentRewards.length - 1) {
+        currentRewardIndex++;
+        displayCurrentReward();
+      }
+    }
+
+    function saveReward(boxId, rewards) {
+      const savedRewards = JSON.parse(localStorage.getItem("rewards")) || [];
+      const code = "Box-" + Date.now();
+      savedRewards.push({ code, box: `Box ${boxId} Robux`, rewards: rewards.join(", ") });
+      localStorage.setItem("rewards", JSON.stringify(savedRewards));
+      displayRewards();
+    }
+
+    function displayRewards() {
+      const rewardsList = document.getElementById("rewardsList");
+      rewardsList.innerHTML = "";
+
+      const savedRewards = JSON.parse(localStorage.getItem("rewards")) || [];
+      savedRewards.forEach(({ code, box, rewards }) => {
+        const rewardItem = document.createElement("div");
+        rewardItem.innerHTML = `<p><strong>${box} (${code})</strong>: ${rewards}</p>`;
+        rewardsList.appendChild(rewardItem);
+      });
+    }
+
+    // Afficher les récompenses existantes
+    displayRewards();
+  </script>
+</body>
+</html>
